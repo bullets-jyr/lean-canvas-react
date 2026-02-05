@@ -1,10 +1,11 @@
 import {useEffect, useState} from 'react';
+import { createCanvas, getCanvases } from '../api/canvas';
 import CanvasList from '../components/CanvasList';
 import SearchBar from '../components/SearchBar';
 import ViewToggle from '../components/ViewToggle';
 import Loading from '../components/Loading';
 import Error from '../components/Error';
-import {getCanvases} from '../api/canvas';
+import Button from '../components/Button';
 
 function Home() {
     const [searchText, setSearchText] = useState();
@@ -17,7 +18,7 @@ function Home() {
         try {
             setIsLoading(true);
             setError(null);
-            await new Promise(resolver => setTimeout(resolver, 2000));
+            await new Promise(resolver => setTimeout(resolver, 1000));
             const response = await getCanvases(params);
             setData(response.data);
         } catch (err) {
@@ -35,11 +36,30 @@ function Home() {
         setData(data.filter(item => item.id !== id));
     };
 
+    const [isLoadingCreate, setIsLoadingCreate] = useState(false);
+    const handleCreateCanvas = async () => {
+        try {
+            setIsLoadingCreate(true);
+            await new Promise(resolver => setTimeout(resolver, 1000));
+            await createCanvas();
+            fetchData({ title_like: searchText });
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setIsLoadingCreate(false);
+        }
+    };
+
     return (
         <>
             <div className="mb-6 flex flex-col sm:flex-row items-center justify-between">
                 <SearchBar searchText={searchText} setSearchText={setSearchText}/>
                 <ViewToggle isGridView={isGridView} setIsGridView={setIsGridView}/>
+            </div>
+            <div className="flex justify-end mb-6">
+                <Button onClick={handleCreateCanvas} loading={isLoadingCreate}>
+                    등록하기
+                </Button>
             </div>
             {isLoading && <Loading/>}
             {error && (
