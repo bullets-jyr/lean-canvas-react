@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import { createCanvas, getCanvases } from '../api/canvas';
+import {createCanvas, deleteCanvas, getCanvases} from '../api/canvas';
 import CanvasList from '../components/CanvasList';
 import SearchBar from '../components/SearchBar';
 import ViewToggle from '../components/ViewToggle';
@@ -32,8 +32,16 @@ function Home() {
         fetchData({title_like: searchText});
     }, [searchText]);
 
-    const handleDeleteItem = id => {
-        setData(data.filter(item => item.id !== id));
+    const handleDeleteItem = async id => {
+        if (confirm('삭제 하시겠습니까?') === false) {
+            return;
+        }
+        try {
+            await deleteCanvas(id);
+            fetchData({title_like: searchText});
+        } catch (err) {
+            alert(err.message);
+        }
     };
 
     const [isLoadingCreate, setIsLoadingCreate] = useState(false);
@@ -42,7 +50,7 @@ function Home() {
             setIsLoadingCreate(true);
             await new Promise(resolver => setTimeout(resolver, 1000));
             await createCanvas();
-            fetchData({ title_like: searchText });
+            fetchData({title_like: searchText});
         } catch (err) {
             alert(err.message);
         } finally {
